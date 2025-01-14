@@ -20,3 +20,5 @@ def get_all_in_progress_books():
 def insert_in_progress_books(updated_df):
     conn = st.connection('gsheets', type=GSheetsConnection)
     conn.update(worksheet='in_progress', data=updated_df)
+    st.cache_data.clear()
+    st.rerun()

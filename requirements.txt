@@ -2,3 +2,4 @@ streamlit
 streamlit-authenticator
 pandas
 st-gsheets-connection
+plotly

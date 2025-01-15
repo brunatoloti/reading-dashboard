@@ -22,3 +22,10 @@ def insert_in_progress_books(updated_df):
     conn.update(worksheet='in_progress', data=updated_df)
     st.cache_data.clear()
     st.rerun()
+
+def insert_in_finished_books_and_remove_in_progress_books(updated_df, remove_df):
+    conn = st.connection('gsheets', type=GSheetsConnection)
+    conn.update(worksheet='finished_books', data=updated_df)
+    conn.update(worksheet='in_progress', data=remove_df)
+    st.cache_data.clear()
+    st.rerun()

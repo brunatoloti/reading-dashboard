@@ -71,7 +71,7 @@ with col2:
                             'Tipo': gapb.query(f"Livro == '{book_name}'")['Tipo'].reset_index(drop=True)[0],
                             'Pais': gapb.query(f"Livro == '{book_name}'")['Pais'].reset_index(drop=True)[0],
                             'PaginaAtual': actual_page,
-                            'Progresso': f"""{int(round(int(actual_page)/gapb.query(f"Livro == '{book_name}'")['QuantidadePaginas'].reset_index(drop=True)[0], 0)*100)}%""",
+                            'Progresso': f"""{int((int(actual_page)/gapb.query(f"Livro == '{book_name}'")['QuantidadePaginas'].reset_index(drop=True)[0])*100)}%""",
                             'DataAtualizacao': datetime.today().strftime('%d/%m/%Y')
                         }
                     ]
@@ -109,33 +109,36 @@ with col3:
 
 st.title('Leituras em andamento')
 
-col3, col4 = st.columns(2)
-
 card_style = """
     <style>
     .card {
         background-color: #1d1e2e;
         border-radius: 10px;
-        padding: 20px;
+        padding: 10px;
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
         overflow: hidden;
-        font-family: 'Tahoma', sans-serif;
+        font-family: 'Verdana', sans-serif;
+        height: 400px;
+        display: flex;
     }
     .card h3 {
         margin-top: 0;
         font-size: 36px;
         color: #d6d7dd;
     }
-    .card p {
-        font-size: 24px;
-        color: #666;
+    .card p strong {
+        font-size: 20px;
+        color: #d6d7dd;
     }
     .card .option {
-        font-size: 24px;
+        font-size: 18px;
         color: #d6d7dd;
-        font-weight: bold;
         margin: 5px 0;
+    }
+    .card .graph {
+        display: block;
+        margin-left: auto;
     }
     </style>
 """
@@ -143,11 +146,12 @@ card_style = """
 for i, row in gapb.iterrows():
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
-        value=row.PaginaAtual,
+        value=round(row.Progresso*100/100, 2),
+        number = {'valueformat':'f'},
         domain={'x': [0, 1], 'y': [0, 1]},
         title={'text': "Progresso"},
         gauge={
-            'axis': {'range': [0, row.QuantidadePaginas], 'tickwidth': 1, 'tickcolor': "#d6d7dd"},
+            'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "#d6d7dd"},
             'bar': {'color': "#FF4B4B"},
             'borderwidth': 2,
             'bordercolor': "#d6d7dd",
@@ -155,21 +159,28 @@ for i, row in gapb.iterrows():
     ))
     fig.update_layout(
         font = {'color': "#d6d7dd"},
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
         width=400,
         height=300
         )
-    fig_html = fig.to_html(full_html=True, include_plotlyjs=True)
+    fig_html = fig.to_html(full_html=False, include_plotlyjs='cdn')
 
     card_content = f"""
     {card_style}
     <div class="card">
-        <h3>{row.Livro}</h3>
-        <p class="option">Autor: {row.Autor}</p>
-        <p class="option">Editora: {row.Editora}</p>
-        <p class="option">País: {row.Pais}</p>
+        <div class="text">
+            <h3>{row.Livro}</h3>
+            <p class="option"><strong>Autor:</strong> {row.Autor}</p>
+            <p class="option"><strong>Quantidade de páginas:</strong> {int(row.QuantidadePaginas)}</p>
+            <p class="option"><strong>Editora:</strong> {row.Editora}</p>
+            <p class="option"><strong>País:</strong> {row.Pais}</p>
+            <p class="option"><strong>Tipo:</strong> {row.Tipo}</p>
+        </div>
+        <div class="graph">
+            {fig_html}
+        </div>
     </div>
     """
-    with col3:
-        html(card_content, height=300)
-    with col4:
-        st.plotly_chart(fig, use_container_width=True)
+
+    html(card_content, height=300)

@@ -4,7 +4,7 @@ import plotly.graph_objects as go
 import streamlit as st
 from streamlit.components.v1 import html
 
-from src.db import get_all_in_progress_books, insert_in_progress_books, get_all_finished_books, insert_in_finished_books_and_remove_in_progress_books
+from src.db import get_all_in_progress_books, insert_in_progress_books, get_all_finished_books, insert_in_finished_books_and_remove_in_progress_books, get_all_countries
 
 
 gapb = get_all_in_progress_books()
@@ -15,6 +15,7 @@ with col1:
     with st.expander('Adicionar nova leitura'):
         author_gender_options = ['F', 'M', 'N']
         book_type_options = ['Livro', 'Quadrinho']
+        countries_options = list(get_all_countries()['value'].unique())
 
         with st.form(key='reading_form'):
             book_name = st.text_input(label='Nome do livro')
@@ -23,7 +24,7 @@ with col1:
             publisher = st.text_input(label='Editora')
             author_gender = st.selectbox('Gênero do autor', options=author_gender_options, index=None, placeholder='Escolha uma opção')
             book_type = st.selectbox('Tipo do livro', options=book_type_options, index=None, placeholder='Escolha uma opção')
-            country = st.text_input('País')
+            country = st.selectbox('País', options=countries_options, index=None, placeholder='Escolha uma opção')
 
             submit_button = st.form_submit_button(label='Salvar')
 

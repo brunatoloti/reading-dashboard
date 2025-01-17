@@ -17,6 +17,11 @@ def get_all_in_progress_books():
     existing_data = conn.read(worksheet='in_progress', usecols=list(range(11))).dropna()
     return existing_data
 
+def get_all_countries():
+    conn = st.connection('gsheets', type=GSheetsConnection)
+    country = conn.read(worksheet='country', usecols=list(range(2))).dropna()
+    return country
+
 def insert_in_progress_books(updated_df):
     conn = st.connection('gsheets', type=GSheetsConnection)
     conn.update(worksheet='in_progress', data=updated_df)

@@ -119,7 +119,7 @@ card_style = """
         box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
         overflow: hidden;
-        font-family: 'Verdana', sans-serif;
+        font-family: 'Trebuchet MS', sans-serif;
         height: 400px;
         display: flex;
     }

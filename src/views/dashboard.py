@@ -9,6 +9,45 @@ st.title('Leituras finalizadas')
 
 finished_books = get_all_finished_books()
 finished_books['Nota'] = finished_books['Nota'].apply(lambda x: float(x.replace(',', '.')))
+finished_books['Ano'] = finished_books['Ano'].apply(lambda x: str(int(x)))
+
+# filters
+filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
+
+year_filter_options = list(finished_books['Ano'].unique())
+publisher_filter_options = list(finished_books.sort_values('Editora')['Editora'].unique())
+author_filter_options = list(finished_books.sort_values('Autor')['Autor'].unique())
+country_filter_options = list(finished_books.sort_values('Pais')['Pais'].unique())
+
+with filter_col1:
+    year_filter = st.selectbox('Ano', options=year_filter_options, index=None, placeholder='Todos')
+with filter_col2:
+    publisher_filter = st.selectbox('Editora', options=publisher_filter_options, index=None, placeholder='Todos')
+with filter_col3:
+    author_filter = st.selectbox('Autor', options=author_filter_options, index=None, placeholder='Todos')
+with filter_col4:
+    country_filter = st.selectbox('País', options=country_filter_options, index=None, placeholder='Todos')
+
+if year_filter == None:
+    year_filter = year_filter_options
+else:
+    year_filter = [year_filter]
+if publisher_filter == None:
+    publisher_filter = publisher_filter_options
+else:
+    publisher_filter = [publisher_filter]
+if author_filter == None:
+    author_filter = author_filter_options
+else:
+    author_filter = [author_filter]
+if country_filter == None:
+    country_filter = country_filter_options
+else:
+    country_filter = [country_filter]
+
+finished_books = finished_books.query(f"Ano in {year_filter} & Editora in {publisher_filter} & Autor in {author_filter} & Pais in {country_filter}")
+
+#graphs
 
 col1, col2, col3, col4, col5 = st.columns(5)
 card1 = go.Figure()
@@ -66,7 +105,15 @@ with col5:
 count_finished_books_by_years = finished_books.groupby('Ano')['Livro'].count().reset_index()
 count_finished_books_by_years['Ano'] = count_finished_books_by_years['Ano'].apply(lambda x: str(int(x)))
 chart1 = px.line(count_finished_books_by_years, x="Ano", y="Livro", 
-                 title='Quantidade de livros lidos por ano')
+                 title='Quantidade de livros lidos por ano', color_discrete_sequence=["#FF4B4B"], text='Livro')
+chart1.update_traces(
+    hovertemplate =
+                "<b>%{x}</b><br>" +
+                "Quantidade de livros: %{y}<br>" +
+                "<extra></extra>",
+    textfont_color='#d6d7dd',
+    textposition='top center'
+)
 chart1.update_layout(
     xaxis=dict(
         type='category',
@@ -84,7 +131,13 @@ with col1:
     finished_books_countries = finished_books_countries.merge(get_all_countries(), left_on='Pais', right_on='value').drop(columns=['value'])
     finished_books_countries = finished_books_countries.rename(columns={'id': 'IdISO3166'})
     chart3 = px.scatter_geo(finished_books_countries, locations="IdISO3166",
-                        hover_name="Pais", size="Livro")
+                        hover_name="Pais", size="Livro", color_discrete_sequence=["#FF4B4B"], custom_data=['Livro'])
+    chart3.update_traces(
+        hovertemplate =
+                    "<b>País</b><br>" +
+                    "Quantidade de livros: %{customdata[0]}<br>" +
+                    "<extra></extra>",
+    )
     chart3.update_layout(
         title_text = 'Quantidade de livros lidos por país',
         geo=dict(
@@ -97,7 +150,15 @@ with col1:
     count_finished_books_by_publisher_top5 = count_finished_books_by_publisher_top5.sort_values('Livro', ascending=False).head()
     chart5 = px.bar(count_finished_books_by_publisher_top5, x="Livro", y="Editora", orientation='h',
                 height=400,
-                title='Top 5 editoras mais lidas')
+                title='Top 5 editoras mais lidas', color_discrete_sequence=["#FF4B4B"],
+                text='Livro')
+    chart5.update_traces(
+        hovertemplate =
+                    "<b>%{y}</b><br>" +
+                    "Quantidade de livros: %{x}<br>" +
+                    "<extra></extra>",
+        textfont_color='#d6d7dd'
+    )
     chart5.update_layout(
         yaxis=dict(autorange="reversed")
     )
@@ -108,7 +169,17 @@ with col2:
     count_finished_books_by_type_gender = finished_books.groupby(['Tipo', 'GeneroAutor'])['Livro'].count().reset_index()
     chart4 = px.bar(count_finished_books_by_type_gender, x="Livro", y="Tipo", color='GeneroAutor', orientation='h',
                 height=400,
-                title='Quantidade de livros lidos por tipo e gênero do autor')
+                title='Quantidade de livros lidos por tipo e gênero do autor', 
+                color_discrete_sequence=["#FF4B4B", "#CF7C7C"],
+                custom_data=['GeneroAutor'], text='Livro')
+    chart4.update_traces(
+        hovertemplate =
+                    "<b>%{y}</b><br>" +
+                    "Quantidade de livros: %{x}<br>" +
+                    "Gênero do autor: %{customdata[0]}<br>" +
+                    "<extra></extra>",
+        textfont_color='#d6d7dd'
+    )
     chart4.update_layout(
         yaxis=dict(autorange="reversed")
     )

@@ -20,3 +20,16 @@ Este projeto é uma plataforma web criada para facilitar o acompanhamento das mi
 * **Principais bibliotecas:** streamlit, pandas
 * **"Banco de dados":** GoogleSheets
 
+## Páginas
+
+**Página de login** - Uma vez que essa plataforma é apenas para meu uso pessoal, implementei uma página de login em que posso entrar no dashboard com o meu usuário e senha.
+
+![alt text](images/image-login.png)
+
+**Página do dashboard de leituras finalizadas** - Abaixo, pode-se ver uma parte do dashboard criado.
+
+![alt text](images/image-dashboard.png)
+
+**Página de leituras em andamento**
+
+![alt text](images/image-in-progress.png)

@@ -2,7 +2,6 @@ from datetime import datetime
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from streamlit.components.v1 import html
 
 from src.db import get_all_in_progress_books, insert_in_progress_books, get_all_finished_books, insert_in_finished_books_and_remove_in_progress_books, get_all_countries
 
@@ -110,40 +109,6 @@ with col3:
 
 st.title('Leituras em andamento')
 
-card_style = """
-    <style>
-    .card {
-        background-color: #1d1e2e;
-        border-radius: 10px;
-        padding: 10px;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-        overflow: hidden;
-        font-family: 'Trebuchet MS', sans-serif;
-        height: 400px;
-        display: flex;
-    }
-    .card h3 {
-        margin-top: 0;
-        font-size: 36px;
-        color: #d6d7dd;
-    }
-    .card p strong {
-        font-size: 20px;
-        color: #d6d7dd;
-    }
-    .card .option {
-        font-size: 18px;
-        color: #d6d7dd;
-        margin: 5px 0;
-    }
-    .card .graph {
-        display: block;
-        margin-left: auto;
-    }
-    </style>
-"""
-
 for i, row in gapb.iterrows():
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
@@ -165,23 +130,20 @@ for i, row in gapb.iterrows():
         width=400,
         height=300
         )
-    fig_html = fig.to_html(full_html=False, include_plotlyjs='cdn')
 
-    card_content = f"""
-    {card_style}
-    <div class="card">
-        <div class="text">
-            <h3>{row.Livro}</h3>
-            <p class="option"><strong>Autor:</strong> {row.Autor}</p>
-            <p class="option"><strong>Quantidade de páginas:</strong> {int(row.QuantidadePaginas)}</p>
-            <p class="option"><strong>Editora:</strong> {row.Editora}</p>
-            <p class="option"><strong>País:</strong> {row.Pais}</p>
-            <p class="option"><strong>Tipo:</strong> {row.Tipo}</p>
-        </div>
-        <div class="graph">
-            {fig_html}
-        </div>
-    </div>
-    """
+    with st.container(border=True):
+        c1, c2 = st.columns(2)
+        m = f'''
+        ## {row.Livro}
+        **Autor:**  {row.Autor}
 
-    html(card_content, height=300)
+        **Quantidade de páginas:**  {int(row.QuantidadePaginas)}
+
+        **Editora:**  {row.Editora}
+
+        **País:**  {row.Pais}
+
+        **Tipo:**  {row.Tipo}
+        '''
+        c1.markdown(m)
+        c2.plotly_chart(fig)

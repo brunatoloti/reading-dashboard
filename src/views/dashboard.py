@@ -1,5 +1,7 @@
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly_calplot import calplot
 import streamlit as st
 
 from src.db import get_all_finished_books, get_all_countries
@@ -197,3 +199,18 @@ with col2:
 
 with st.expander('Ver detalhes'):
     st.dataframe(finished_books, hide_index=True)
+
+    finished_books_by_date = finished_books[['Livro', 'DataTermino', 'Ano']].sort_values('Ano')
+    finished_books_by_date = finished_books_by_date.groupby(['Ano', 'DataTermino']).count().rename(columns={'Livro': 'QtLivros'}).reset_index(drop=False)
+    finished_books_by_date['DataTermino'] = pd.to_datetime(finished_books_by_date['DataTermino'], format='%d/%m/%Y').dt.date
+    chart6 = calplot(finished_books_by_date, x='DataTermino', y='QtLivros', 
+                     cmap_min=0, cmap_max=5, name='Quantidade', colorscale='reds')
+    dd = {"title": {"text": "Histórico de finalização de leituras"}}
+    j = 1
+    for i in finished_books.sort_values('Ano')['Ano'].unique():
+        dd.update({f"yaxis{j}" : {"title": str(i), "ticktext": ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"]}, 
+                   f"xaxis{j}": {"ticktext": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
+                                              "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]}})
+        j = j + 1
+    chart6.update_layout(dd)
+    st.plotly_chart(chart6)

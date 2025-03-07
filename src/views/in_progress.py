@@ -146,4 +146,4 @@ for i, row in gapb.iterrows():
         **Tipo:**  {row.Tipo}
         '''
         c1.markdown(m)
-        c2.plotly_chart(fig)
+        c2.plotly_chart(fig, key=row.Livro)

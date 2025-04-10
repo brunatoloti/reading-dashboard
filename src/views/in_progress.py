@@ -13,7 +13,7 @@ col1, col2, col3 = st.columns([1, 1, 1])
 with col1:
     with st.expander('Adicionar nova leitura'):
         author_gender_options = ['F', 'M', 'N']
-        book_type_options = ['Livro', 'Quadrinho']
+        book_type_options = ['Livro', 'Quadrinho', 'Mangá']
         countries_options = list(get_all_countries()['value'].unique())
 
         with st.form(key='reading_form'):

@@ -139,6 +139,8 @@ for i, row in gapb.iterrows():
 
         **Quantidade de páginas:**  {int(row.QuantidadePaginas)}
 
+        **Página atual:**  {int(row.PaginaAtual)}
+
         **Editora:**  {row.Editora}
 
         **País:**  {row.Pais}

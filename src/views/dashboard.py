@@ -123,7 +123,43 @@ chart1.update_layout(
         categoryarray=sorted(count_finished_books_by_years['Ano'].unique())
     )
 )
+chart1.update_yaxes(title_text='')
+chart1.update_xaxes(title_text='')
 st.plotly_chart(chart1)
+
+count_finished_books_by_years_genders = finished_books.groupby(['Ano', 'GeneroAutor'])['Livro'].count().reset_index()
+count_finished_books_by_years_genders['Ano'] = count_finished_books_by_years_genders['Ano'].apply(lambda x: str(int(x)))
+chart7 = px.line(count_finished_books_by_years_genders, x="Ano", y="Livro", color="GeneroAutor",
+                 title='Quantidade de livros lidos por ano e por gênero do autor', color_discrete_sequence=["#FF4B4B", "#CF7C7C"], text='Livro', custom_data=['GeneroAutor'])
+chart7.update_traces(
+    hovertemplate =
+                "<b>%{x}</b><br>" +
+                "Quantidade de livros: %{y}<br>" +
+                "Gênero do autor: %{customdata[0]}<br>" +
+                "<extra></extra>",
+    textfont_color='#d6d7dd',
+    textposition='top center'
+)
+chart7.update_layout(
+    xaxis=dict(
+        type='category',
+        categoryorder='array',
+        categoryarray=sorted(count_finished_books_by_years['Ano'].unique())
+    )
+)
+chart7.update_yaxes(title_text='')
+chart7.update_xaxes(title_text='')
+st.plotly_chart(chart7)
+
+chart8 = px.histogram(
+    finished_books,
+    x='QuantidadePaginas',
+    title='Distribuição do tamanho dos livros lidos',
+    color_discrete_sequence=["#CF7C7C"]
+)
+chart8.update_xaxes(title_text='Quantidade de páginas')
+chart8.update_yaxes(title_text='')
+st.plotly_chart(chart8)
 
 col1, col2 = st.columns([1, 1])
 
@@ -145,6 +181,12 @@ with col1:
         geo=dict(
             projection_type='equirectangular')
     )
+    chart3.update_geos(
+        showcoastlines=True, coastlinecolor="black",
+        showland=True, landcolor="beige",
+        showcountries=True, countrycolor="black",
+        showocean=True, oceancolor="LightBlue"
+    )
     st.plotly_chart(chart3)
 
     # chart of top 5 publishers
@@ -164,6 +206,8 @@ with col1:
     chart5.update_layout(
         yaxis=dict(autorange="reversed")
     )
+    chart5.update_yaxes(title_text='')
+    chart5.update_xaxes(title_text='')
     st.plotly_chart(chart5)
 
 with col2:
@@ -185,6 +229,8 @@ with col2:
     chart4.update_layout(
         yaxis=dict(autorange="reversed")
     )
+    chart4.update_yaxes(title_text='')
+    chart4.update_xaxes(title_text='')
     st.plotly_chart(chart4)
 
     count_finished_books_by_author_qtd_books = finished_books.groupby('Autor')['Livro'].count().reset_index()

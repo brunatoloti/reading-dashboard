@@ -15,6 +15,7 @@ with col1:
         author_gender_options = ['F', 'M', 'N']
         book_type_options = ['Livro', 'Quadrinho', 'Mangá']
         countries_options = list(get_all_countries()['value'].unique())
+        format_options = ['Físico', 'Ebook', 'Audiobook']
 
         with st.form(key='reading_form'):
             book_name = st.text_input(label='Nome do livro')
@@ -24,6 +25,7 @@ with col1:
             author_gender = st.selectbox('Gênero do autor', options=author_gender_options, index=None, placeholder='Escolha uma opção')
             book_type = st.selectbox('Tipo do livro', options=book_type_options, index=None, placeholder='Escolha uma opção')
             country = st.selectbox('País', options=countries_options, index=None, placeholder='Escolha uma opção')
+            format_read = st.selectbox('Formato de leitura', options=format_options, index=None, placeholder='Escolha uma opção')
 
             submit_button = st.form_submit_button(label='Salvar')
 
@@ -39,6 +41,7 @@ with col1:
                             'GeneroAutor': author_gender,
                             'Tipo': book_type,
                             'Pais': country,
+                            'Formato': format_read,
                             'PaginaAtual': 0,
                             'Progresso': 0,
                             'DataAtualizacao': datetime.today().strftime('%d/%m/%Y')
@@ -70,6 +73,7 @@ with col2:
                             'GeneroAutor': gapb.query(f"Livro == '{book_name}'")['GeneroAutor'].reset_index(drop=True)[0],
                             'Tipo': gapb.query(f"Livro == '{book_name}'")['Tipo'].reset_index(drop=True)[0],
                             'Pais': gapb.query(f"Livro == '{book_name}'")['Pais'].reset_index(drop=True)[0],
+                            'Formato': gapb.query(f"Livro == '{book_name}'")['Formato'].reset_index(drop=True)[0],
                             'PaginaAtual': actual_page,
                             'Progresso': f"""{int((int(actual_page)/gapb.query(f"Livro == '{book_name}'")['QuantidadePaginas'].reset_index(drop=True)[0])*100)}%""",
                             'DataAtualizacao': datetime.today().strftime('%d/%m/%Y')
@@ -98,6 +102,7 @@ with col3:
                             'GeneroAutor': gapb.query(f"Livro == '{book_name}'")['GeneroAutor'].reset_index(drop=True)[0],
                             'Tipo': gapb.query(f"Livro == '{book_name}'")['Tipo'].reset_index(drop=True)[0],
                             'Pais': gapb.query(f"Livro == '{book_name}'")['Pais'].reset_index(drop=True)[0],
+                            'Formato': gapb.query(f"Livro == '{book_name}'")['Formato'].reset_index(drop=True)[0],
                             'DataTermino': datetime.today().strftime('%d/%m/%Y'),
                             'Nota': rate_book
                         }
@@ -146,6 +151,8 @@ for i, row in gapb.iterrows():
         **País:**  {row.Pais}
 
         **Tipo:**  {row.Tipo}
+
+        **Formato:**  {row.Formato}
         '''
         c1.markdown(m)
         c2.plotly_chart(fig, key=row.Livro)

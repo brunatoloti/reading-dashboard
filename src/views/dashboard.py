@@ -233,15 +233,33 @@ with col2:
     chart4.update_xaxes(title_text='')
     st.plotly_chart(chart4)
 
-    count_finished_books_by_author_qtd_books = finished_books.groupby('Autor')['Livro'].count().reset_index()
-    count_finished_books_by_author_qtd_pages = finished_books.groupby('Autor')['QuantidadePaginas'].sum().reset_index()
-    count_finished_books_by_author_mean = finished_books.groupby('Autor')['Nota'].mean().reset_index()
-    count_finished_books_by_author_details = count_finished_books_by_author_qtd_books.merge(count_finished_books_by_author_qtd_pages, on='Autor')
-    count_finished_books_by_author_details = count_finished_books_by_author_details.merge(count_finished_books_by_author_mean, on='Autor')
-    count_finished_books_by_author_details['QuantidadePaginas'] = count_finished_books_by_author_details['QuantidadePaginas'].apply(lambda x: str(int(x)))
-    count_finished_books_by_author_details['Nota'] = count_finished_books_by_author_details['Nota'].apply(lambda x: round(x, 1))
-    count_finished_books_by_author_details = count_finished_books_by_author_details.rename(columns={'Livro': 'Livros lidos', 'Nota': 'Média de notas', 'QuantidadePaginas': 'Total de páginas'})
-    st.dataframe(count_finished_books_by_author_details.sort_values(['Livros lidos', 'Autor'], ascending=[0,1]).reset_index(drop=True), hide_index=True, use_container_width=True)
+    # Number of books by read format
+    count_finished_books_by_read_format = finished_books.groupby('Formato')['Livro'].count().reset_index()
+    count_finished_books_by_read_format = count_finished_books_by_read_format.sort_values('Livro', ascending=False)
+    chart9 = px.bar(count_finished_books_by_read_format, x="Formato", y="Livro",
+                height=400,
+                title='Quantidade de livros lidos por formato', color_discrete_sequence=["#FF4B4B"],
+                text='Livro')
+    chart9.update_traces(
+        hovertemplate =
+                    "<b>%{y}</b><br>" +
+                    "Quantidade de livros: %{x}<br>" +
+                    "<extra></extra>",
+        textfont_color='#d6d7dd'
+    )
+    chart9.update_yaxes(title_text='')
+    chart9.update_xaxes(title_text='')
+    st.plotly_chart(chart9)
+
+count_finished_books_by_author_qtd_books = finished_books.groupby('Autor')['Livro'].count().reset_index()
+count_finished_books_by_author_qtd_pages = finished_books.groupby('Autor')['QuantidadePaginas'].sum().reset_index()
+count_finished_books_by_author_mean = finished_books.groupby('Autor')['Nota'].mean().reset_index()
+count_finished_books_by_author_details = count_finished_books_by_author_qtd_books.merge(count_finished_books_by_author_qtd_pages, on='Autor')
+count_finished_books_by_author_details = count_finished_books_by_author_details.merge(count_finished_books_by_author_mean, on='Autor')
+count_finished_books_by_author_details['QuantidadePaginas'] = count_finished_books_by_author_details['QuantidadePaginas'].apply(lambda x: str(int(x)))
+count_finished_books_by_author_details['Nota'] = count_finished_books_by_author_details['Nota'].apply(lambda x: round(x, 1))
+count_finished_books_by_author_details = count_finished_books_by_author_details.rename(columns={'Livro': 'Livros lidos', 'Nota': 'Média de notas', 'QuantidadePaginas': 'Total de páginas'})
+st.dataframe(count_finished_books_by_author_details.sort_values(['Livros lidos', 'Autor'], ascending=[0,1]).reset_index(drop=True), hide_index=True, use_container_width=True)
 
 with st.expander('Ver detalhes'):
     st.dataframe(finished_books, hide_index=True)

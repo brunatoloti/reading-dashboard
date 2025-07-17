@@ -12,6 +12,7 @@ st.title('Leituras finalizadas')
 finished_books = get_all_finished_books()
 finished_books['Nota'] = finished_books['Nota'].apply(lambda x: float(x.replace(',', '.')))
 finished_books['Ano'] = finished_books['Ano'].apply(lambda x: str(int(x)))
+finished_books['LeituraNova'] = finished_books['LeituraNova'].apply(lambda x: 'Leitura nova' if x else 'Releitura')
 
 # filters
 filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
@@ -51,45 +52,53 @@ finished_books = finished_books.query(f"Ano in {year_filter} & Editora in {publi
 
 #graphs
 
-col1, col2, col3, col4, col5 = st.columns(5)
+col1, col2, col3, col4, col5, col6 = st.columns(6)
 card1 = go.Figure()
 card1.add_trace(go.Indicator(
     mode = "number",
-    value = finished_books.shape[0],
-    title = {"text": "Quantidade de livros"}))
+    value = finished_books.drop_duplicates(subset=['Livro', 'Autor']).shape[0],
+    title = {"text": "Qtd de livros"}))
 card1.update_layout(
     height=250,
 )
 card2 = go.Figure()
 card2.add_trace(go.Indicator(
     mode = "number",
-    value = finished_books.Nota.mean(),
-    title = {"text": "Média de notas"}))
+    value = finished_books.shape[0],
+    title = {"text": "Qtd de leituras"}))
 card2.update_layout(
     height=250,
 )
 card3 = go.Figure()
 card3.add_trace(go.Indicator(
     mode = "number",
-    value = finished_books.QuantidadePaginas.sum(),
-    title = {"text": "Total de páginas lidas"}))
+    value = finished_books.Nota.mean(),
+    title = {"text": "Média de notas"}))
 card3.update_layout(
     height=250,
 )
 card4 = go.Figure()
 card4.add_trace(go.Indicator(
     mode = "number",
-    value = finished_books.QuantidadePaginas.median(),
-    title = {"text": "Mediana de páginas"}))
+    value = finished_books.QuantidadePaginas.sum(),
+    title = {"text": "Páginas lidas"}))
 card4.update_layout(
     height=250,
 )
 card5 = go.Figure()
 card5.add_trace(go.Indicator(
     mode = "number",
-    value = finished_books.Autor.nunique(),
-    title = {"text": "Quantidade de escritores"}))
+    value = finished_books.QuantidadePaginas.median(),
+    title = {"text": "Mediana de páginas"}))
 card5.update_layout(
+    height=250,
+)
+card6 = go.Figure()
+card6.add_trace(go.Indicator(
+    mode = "number",
+    value = finished_books.Autor.nunique(),
+    title = {"text": "Qtd de escritores"}))
+card6.update_layout(
     height=250,
 )
 with col1:
@@ -102,6 +111,8 @@ with col4:
     st.plotly_chart(card4)
 with col5:
     st.plotly_chart(card5)
+with col6:
+    st.plotly_chart(card6)
 
 # chart of number of books read per year
 count_finished_books_by_years = finished_books.groupby('Ano')['Livro'].count().reset_index()
@@ -210,6 +221,20 @@ with col1:
     chart5.update_xaxes(title_text='')
     st.plotly_chart(chart5)
 
+    # Pie chart (oh no!!! But we only have two categories)
+    count_finished_books_by_new_reading = finished_books['LeituraNova'].value_counts().reset_index()
+    count_finished_books_by_new_reading.columns = ['LeituraNova', 'Qtd']
+    chart10 = px.pie(count_finished_books_by_new_reading, names='LeituraNova', values='Qtd',
+                     hole=0.5, title='Quantidade de leituras novas e releituras', color_discrete_sequence=["#FF4B4B", "#CF7C7C"])
+    chart10.update_traces(textinfo='value',
+                          hovertemplate =
+                            "<b>%{label}</b><br>" +
+                            "Quantidade de livros: %{value}<br>" +
+                            "<extra></extra>",
+                          textfont_color='#d6d7dd')
+    chart10.update_layout(showlegend=True)
+    st.plotly_chart(chart10)
+
 with col2:
     # chart of number of books read by type and genre of author
     count_finished_books_by_type_gender = finished_books.groupby(['Tipo', 'GeneroAutor'])['Livro'].count().reset_index()
@@ -251,14 +276,17 @@ with col2:
     chart9.update_xaxes(title_text='')
     st.plotly_chart(chart9)
 
-count_finished_books_by_author_qtd_books = finished_books.groupby('Autor')['Livro'].count().reset_index()
+count_finished_books_by_author_qtd_books = finished_books.drop_duplicates(subset=['Autor', 'Livro']).groupby('Autor')['Livro'].count().reset_index()
+count_finished_books_by_author_qtd_rereading = finished_books.groupby(['Autor', 'LeituraNova']).size().unstack(fill_value=0)
 count_finished_books_by_author_qtd_pages = finished_books.groupby('Autor')['QuantidadePaginas'].sum().reset_index()
 count_finished_books_by_author_mean = finished_books.groupby('Autor')['Nota'].mean().reset_index()
 count_finished_books_by_author_details = count_finished_books_by_author_qtd_books.merge(count_finished_books_by_author_qtd_pages, on='Autor')
 count_finished_books_by_author_details = count_finished_books_by_author_details.merge(count_finished_books_by_author_mean, on='Autor')
+count_finished_books_by_author_details = count_finished_books_by_author_details.merge(count_finished_books_by_author_qtd_rereading, on='Autor')
 count_finished_books_by_author_details['QuantidadePaginas'] = count_finished_books_by_author_details['QuantidadePaginas'].apply(lambda x: str(int(x)))
 count_finished_books_by_author_details['Nota'] = count_finished_books_by_author_details['Nota'].apply(lambda x: round(x, 1))
-count_finished_books_by_author_details = count_finished_books_by_author_details.rename(columns={'Livro': 'Livros lidos', 'Nota': 'Média de notas', 'QuantidadePaginas': 'Total de páginas'})
+count_finished_books_by_author_details = count_finished_books_by_author_details.rename(columns={'Livro': 'Livros lidos', 'Nota': 'Média de notas', 'QuantidadePaginas': 'Total de páginas',
+                                                                                                'Leitura nova': 'Leituras novas', 'Releitura': 'Releituras'})
 st.dataframe(count_finished_books_by_author_details.sort_values(['Livros lidos', 'Autor'], ascending=[0,1]).reset_index(drop=True), hide_index=True, use_container_width=True)
 
 with st.expander('Ver detalhes'):

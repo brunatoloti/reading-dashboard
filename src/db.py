@@ -14,7 +14,7 @@ def get_all_finished_books():
 
 def get_all_in_progress_books():
     conn = st.connection('gsheets', type=GSheetsConnection)
-    existing_data = conn.read(worksheet='in_progress', usecols=list(range(11))).dropna()
+    existing_data = conn.read(worksheet='in_progress', usecols=list(range(14))).dropna()
     return existing_data
 
 def get_all_countries():

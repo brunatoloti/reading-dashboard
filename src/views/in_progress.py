@@ -16,6 +16,7 @@ with col1:
         book_type_options = ['Livro', 'Quadrinho', 'Mangá']
         countries_options = list(get_all_countries()['value'].unique())
         format_options = ['Físico', 'Ebook', 'Audiobook']
+        new_reading_options = ['Leitura nova', 'Releitura']
 
         with st.form(key='reading_form'):
             book_name = st.text_input(label='Nome do livro')
@@ -26,6 +27,7 @@ with col1:
             book_type = st.selectbox('Tipo do livro', options=book_type_options, index=None, placeholder='Escolha uma opção')
             country = st.selectbox('País', options=countries_options, index=None, placeholder='Escolha uma opção')
             format_read = st.selectbox('Formato de leitura', options=format_options, index=None, placeholder='Escolha uma opção')
+            new_reading = st.selectbox('Leitura nova ou releitura?', options=new_reading_options, index=None, placeholder='Escolha uma opção')
 
             submit_button = st.form_submit_button(label='Salvar')
 
@@ -42,6 +44,7 @@ with col1:
                             'Tipo': book_type,
                             'Pais': country,
                             'Formato': format_read,
+                            'LeituraNova': True if new_reading=='Nova leitura' else False,
                             'PaginaAtual': 0,
                             'Progresso': 0,
                             'DataAtualizacao': datetime.today().strftime('%d/%m/%Y')
@@ -74,6 +77,7 @@ with col2:
                             'Tipo': gapb.query(f"Livro == '{book_name}'")['Tipo'].reset_index(drop=True)[0],
                             'Pais': gapb.query(f"Livro == '{book_name}'")['Pais'].reset_index(drop=True)[0],
                             'Formato': gapb.query(f"Livro == '{book_name}'")['Formato'].reset_index(drop=True)[0],
+                            'LeituraNova': gapb.query(f"Livro == '{book_name}'")['LeituraNova'].reset_index(drop=True)[0],
                             'PaginaAtual': actual_page,
                             'Progresso': f"""{int((int(actual_page)/gapb.query(f"Livro == '{book_name}'")['QuantidadePaginas'].reset_index(drop=True)[0])*100)}%""",
                             'DataAtualizacao': datetime.today().strftime('%d/%m/%Y')
@@ -103,6 +107,7 @@ with col3:
                             'Tipo': gapb.query(f"Livro == '{book_name}'")['Tipo'].reset_index(drop=True)[0],
                             'Pais': gapb.query(f"Livro == '{book_name}'")['Pais'].reset_index(drop=True)[0],
                             'Formato': gapb.query(f"Livro == '{book_name}'")['Formato'].reset_index(drop=True)[0],
+                            'LeituraNova': gapb.query(f"Livro == '{book_name}'")['LeituraNova'].reset_index(drop=True)[0],
                             'DataTermino': datetime.today().strftime('%d/%m/%Y'),
                             'Nota': rate_book
                         }

@@ -24,7 +24,7 @@ credentials = {"usernames": {first_name+last_name: {"name": first_name, "passwor
 
 authenticator = stauth.Authenticate(credentials, "reading_dashboard_bru", "abcdef", cookie_expiry_days=30)
 
-authenticator.login("main", "Login")
+authenticator.login("main", "Login", fields={'Form name': 'Login', 'Username': 'Usuário', 'Password': 'Senha', 'Login': 'Entrar'})
 authentication_status = st.session_state['authentication_status']
 st.session_state["authenticator"] = authenticator
 

@@ -52,12 +52,12 @@ finished_books = finished_books.query(f"Ano in {year_filter} & Editora in {publi
 
 #graphs
 
-col1, col2, col3, col4, col5, col6 = st.columns(6)
+col_indicator = st.columns((1.5, 1.5, 1, 1, 1.25, 1.5))
 card1 = go.Figure()
 card1.add_trace(go.Indicator(
     mode = "number",
     value = finished_books.drop_duplicates(subset=['Livro', 'Autor']).shape[0],
-    title = {"text": "Qtd de livros"}))
+    title = {"text": "Quantidade de livros"}))
 card1.update_layout(
     height=250,
 )
@@ -65,7 +65,7 @@ card2 = go.Figure()
 card2.add_trace(go.Indicator(
     mode = "number",
     value = finished_books.shape[0],
-    title = {"text": "Qtd de leituras"}))
+    title = {"text": "Quantidade de leituras"}))
 card2.update_layout(
     height=250,
 )
@@ -97,21 +97,21 @@ card6 = go.Figure()
 card6.add_trace(go.Indicator(
     mode = "number",
     value = finished_books.Autor.nunique(),
-    title = {"text": "Qtd de escritores"}))
+    title = {"text": "Quantidade de autores"}))
 card6.update_layout(
     height=250,
 )
-with col1:
+with col_indicator[0]:
     st.plotly_chart(card1)
-with col2:
+with col_indicator[1]:
     st.plotly_chart(card2)
-with col3:
+with col_indicator[2]:
     st.plotly_chart(card3)
-with col4:
+with col_indicator[3]:
     st.plotly_chart(card4)
-with col5:
+with col_indicator[4]:
     st.plotly_chart(card5)
-with col6:
+with col_indicator[5]:
     st.plotly_chart(card6)
 
 # chart of number of books read per year

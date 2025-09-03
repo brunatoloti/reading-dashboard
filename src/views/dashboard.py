@@ -138,15 +138,14 @@ chart1.update_yaxes(title_text='')
 chart1.update_xaxes(title_text='')
 st.plotly_chart(chart1)
 
-count_finished_books_by_years_genders = finished_books.groupby(['Ano', 'GeneroAutor'])['Livro'].count().reset_index()
-count_finished_books_by_years_genders['Ano'] = count_finished_books_by_years_genders['Ano'].apply(lambda x: str(int(x)))
-chart7 = px.line(count_finished_books_by_years_genders, x="Ano", y="Livro", color="GeneroAutor",
-                 title='Quantidade de livros lidos por ano e por gênero do autor', color_discrete_sequence=["#FF4B4B", "#CF7C7C"], text='Livro', custom_data=['GeneroAutor'])
+count_pages_books_by_years = finished_books.groupby('Ano')['QuantidadePaginas'].sum().reset_index()
+count_pages_books_by_years['Ano'] = count_pages_books_by_years['Ano'].apply(lambda x: str(int(x)))
+chart7 = px.line(count_pages_books_by_years, x="Ano", y="QuantidadePaginas",
+                 title='Quantidade de páginas lidas por ano', color_discrete_sequence=["#CF7C7C"], text='QuantidadePaginas')
 chart7.update_traces(
     hovertemplate =
                 "<b>%{x}</b><br>" +
-                "Quantidade de livros: %{y}<br>" +
-                "Gênero do autor: %{customdata[0]}<br>" +
+                "Quantidade de páginas: %{y}<br>" +
                 "<extra></extra>",
     textfont_color='#d6d7dd',
     textposition='top center'
@@ -276,6 +275,27 @@ with col2:
     chart9.update_xaxes(title_text='')
     st.plotly_chart(chart9)
 
+    # chart of top 5 countries
+    count_finished_books_by_country_top5 = finished_books.groupby('Pais')['Livro'].count().reset_index()
+    count_finished_books_by_country_top5 = count_finished_books_by_country_top5.sort_values('Livro', ascending=False).head()
+    chart11 = px.bar(count_finished_books_by_country_top5, x="Livro", y="Pais", orientation='h',
+                height=400,
+                title='Top 5 países mais lidos', color_discrete_sequence=["#CF7C7C"],
+                text='Livro')
+    chart11.update_traces(
+        hovertemplate =
+                    "<b>%{y}</b><br>" +
+                    "Quantidade de livros: %{x}<br>" +
+                    "<extra></extra>",
+        textfont_color='#d6d7dd'
+    )
+    chart11.update_layout(
+        yaxis=dict(autorange="reversed")
+    )
+    chart11.update_yaxes(title_text='')
+    chart11.update_xaxes(title_text='')
+    st.plotly_chart(chart11)
+
 count_finished_books_by_author_qtd_books = finished_books.drop_duplicates(subset=['Autor', 'Livro']).groupby('Autor')['Livro'].count().reset_index()
 count_finished_books_by_author_qtd_rereading = finished_books.groupby(['Autor', 'LeituraNova']).size().unstack(fill_value=0)
 count_finished_books_by_author_qtd_pages = finished_books.groupby('Autor')['QuantidadePaginas'].sum().reset_index()
@@ -295,6 +315,11 @@ with st.expander('Ver detalhes'):
     finished_books_by_date = finished_books[['Livro', 'DataTermino', 'Ano']].sort_values('Ano')
     finished_books_by_date = finished_books_by_date.groupby(['Ano', 'DataTermino']).count().rename(columns={'Livro': 'QtLivros'}).reset_index(drop=False)
     finished_books_by_date['DataTermino'] = pd.to_datetime(finished_books_by_date['DataTermino'], format='%d/%m/%Y').dt.date
+    finished_books_by_date = finished_books_by_date.set_index('DataTermino')['QtLivros']
+    finished_books_by_date = finished_books_by_date.fillna(0)
+    finished_books_by_date = finished_books_by_date.reindex(pd.date_range(finished_books_by_date.index.min(), finished_books_by_date.index.max()), fill_value=0)
+    finished_books_by_date = finished_books_by_date.reset_index(drop=False).rename(columns={'index': 'DataTermino'})
+    st.dataframe(finished_books_by_date)
     chart6 = calplot(finished_books_by_date, x='DataTermino', y='QtLivros', 
                      cmap_min=0, cmap_max=5, name='Quantidade', colorscale='reds')
     dd = {"title": {"text": "Histórico de finalização de leituras"}}

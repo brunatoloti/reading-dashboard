@@ -44,7 +44,7 @@ with col1:
                             'Tipo': book_type,
                             'Pais': country,
                             'Formato': format_read,
-                            'LeituraNova': True if new_reading=='Nova leitura' else False,
+                            'LeituraNova': True if new_reading=='Leitura nova' else False,
                             'PaginaAtual': 0,
                             'Progresso': 0,
                             'DataAtualizacao': datetime.today().strftime('%d/%m/%Y')

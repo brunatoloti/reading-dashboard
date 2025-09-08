@@ -319,7 +319,6 @@ with st.expander('Ver detalhes'):
     finished_books_by_date = finished_books_by_date.fillna(0)
     finished_books_by_date = finished_books_by_date.reindex(pd.date_range(finished_books_by_date.index.min(), finished_books_by_date.index.max()), fill_value=0)
     finished_books_by_date = finished_books_by_date.reset_index(drop=False).rename(columns={'index': 'DataTermino'})
-    st.dataframe(finished_books_by_date)
     chart6 = calplot(finished_books_by_date, x='DataTermino', y='QtLivros', 
                      cmap_min=0, cmap_max=5, name='Quantidade', colorscale='reds')
     dd = {"title": {"text": "Histórico de finalização de leituras"}}

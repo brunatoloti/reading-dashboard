@@ -48,6 +48,16 @@ if country_filter == None:
 else:
     country_filter = [country_filter]
 
+filter_by = st.selectbox('Você quer ver por quantidade de livros ou por quantidade de páginas?',
+                         ['Quantidade de livros', 'Quantidade de páginas'],
+                         placeholder='Quantidade de livros')
+if filter_by == 'Quantidade de livros':
+    col_filter_by = 'Livro'
+    title_filter_by = 'livros lidos'
+else:
+    col_filter_by = 'QuantidadePaginas'
+    title_filter_by = 'páginas lidas'
+
 finished_books = finished_books.query(f"Ano in {year_filter} & Editora in {publisher_filter} & Autor in {author_filter} & Pais in {country_filter}")
 
 #graphs
@@ -115,14 +125,17 @@ with col_indicator[5]:
     st.plotly_chart(card6)
 
 # chart of number of books read per year
-count_finished_books_by_years = finished_books.groupby('Ano')['Livro'].count().reset_index()
+if filter_by == 'Quantidade de livros':
+    count_finished_books_by_years = finished_books.groupby('Ano')[col_filter_by].count().reset_index()
+else:
+    count_finished_books_by_years = finished_books.groupby('Ano')[col_filter_by].sum().reset_index()
 count_finished_books_by_years['Ano'] = count_finished_books_by_years['Ano'].apply(lambda x: str(int(x)))
-chart1 = px.line(count_finished_books_by_years, x="Ano", y="Livro", 
-                 title='Quantidade de livros lidos por ano', color_discrete_sequence=["#FF4B4B"], text='Livro')
+chart1 = px.line(count_finished_books_by_years, x="Ano", y=col_filter_by, 
+                 title=f'Quantidade de {title_filter_by} por ano', color_discrete_sequence=["#FF4B4B"], text=col_filter_by)
 chart1.update_traces(
     hovertemplate =
                 "<b>%{x}</b><br>" +
-                "Quantidade de livros: %{y}<br>" +
+                "Quantidade: %{y}<br>" +
                 "<extra></extra>",
     textfont_color='#d6d7dd',
     textposition='top center'
@@ -138,29 +151,6 @@ chart1.update_yaxes(title_text='')
 chart1.update_xaxes(title_text='')
 st.plotly_chart(chart1)
 
-count_pages_books_by_years = finished_books.groupby('Ano')['QuantidadePaginas'].sum().reset_index()
-count_pages_books_by_years['Ano'] = count_pages_books_by_years['Ano'].apply(lambda x: str(int(x)))
-chart7 = px.line(count_pages_books_by_years, x="Ano", y="QuantidadePaginas",
-                 title='Quantidade de páginas lidas por ano', color_discrete_sequence=["#CF7C7C"], text='QuantidadePaginas')
-chart7.update_traces(
-    hovertemplate =
-                "<b>%{x}</b><br>" +
-                "Quantidade de páginas: %{y}<br>" +
-                "<extra></extra>",
-    textfont_color='#d6d7dd',
-    textposition='top center'
-)
-chart7.update_layout(
-    xaxis=dict(
-        type='category',
-        categoryorder='array',
-        categoryarray=sorted(count_finished_books_by_years['Ano'].unique())
-    )
-)
-chart7.update_yaxes(title_text='')
-chart7.update_xaxes(title_text='')
-st.plotly_chart(chart7)
-
 chart8 = px.histogram(
     finished_books,
     x='QuantidadePaginas',
@@ -169,25 +159,35 @@ chart8 = px.histogram(
 )
 chart8.update_xaxes(title_text='Quantidade de páginas')
 chart8.update_yaxes(title_text='')
+chart8.update_layout(
+    title=dict(
+        subtitle={
+            'text': 'Este gráfico não sofre alterações com o filtro de ordenação por número de livros ou quantidade de páginas'
+        }
+    )
+)
 st.plotly_chart(chart8)
 
 col1, col2 = st.columns([1, 1])
 
 with col1:
     # chart of number of books read by country
-    finished_books_countries = finished_books.groupby('Pais')['Livro'].count().reset_index()
+    if filter_by == 'Quantidade de livros':
+        finished_books_countries = finished_books.groupby('Pais')[col_filter_by].count().reset_index()
+    else:
+        finished_books_countries = finished_books.groupby('Pais')[col_filter_by].sum().reset_index()
     finished_books_countries = finished_books_countries.merge(get_all_countries(), left_on='Pais', right_on='value').drop(columns=['value'])
     finished_books_countries = finished_books_countries.rename(columns={'id': 'IdISO3166'})
     chart3 = px.scatter_geo(finished_books_countries, locations="IdISO3166",
-                        hover_name="Pais", size="Livro", color_discrete_sequence=["#FF4B4B"], custom_data=['Livro', 'Pais'])
+                        hover_name="Pais", size=col_filter_by, color_discrete_sequence=["#FF4B4B"], custom_data=[col_filter_by, 'Pais'])
     chart3.update_traces(
         hovertemplate =
                     "<b>%{customdata[1]}</b><br>" +
-                    "Quantidade de livros: %{customdata[0]}<br>" +
+                    "Quantidade: %{customdata[0]}<br>" +
                     "<extra></extra>",
     )
     chart3.update_layout(
-        title_text = 'Quantidade de livros lidos por país',
+        title_text = f'Quantidade de {title_filter_by} por país',
         geo=dict(
             projection_type='equirectangular')
     )
@@ -200,16 +200,19 @@ with col1:
     st.plotly_chart(chart3)
 
     # chart of top 5 publishers
-    count_finished_books_by_publisher_top5 = finished_books.groupby('Editora')['Livro'].count().reset_index()
-    count_finished_books_by_publisher_top5 = count_finished_books_by_publisher_top5.sort_values('Livro', ascending=False).head()
-    chart5 = px.bar(count_finished_books_by_publisher_top5, x="Livro", y="Editora", orientation='h',
+    if filter_by == 'Quantidade de livros':
+        count_finished_books_by_publisher_top5 = finished_books.groupby('Editora')[col_filter_by].count().reset_index()
+    else:
+        count_finished_books_by_publisher_top5 = finished_books.groupby('Editora')[col_filter_by].sum().reset_index()
+    count_finished_books_by_publisher_top5 = count_finished_books_by_publisher_top5.sort_values(col_filter_by, ascending=False).head()
+    chart5 = px.bar(count_finished_books_by_publisher_top5, x=col_filter_by, y="Editora", orientation='h',
                 height=400,
                 title='Top 5 editoras mais lidas', color_discrete_sequence=["#FF4B4B"],
-                text='Livro')
+                text=col_filter_by)
     chart5.update_traces(
         hovertemplate =
                     "<b>%{y}</b><br>" +
-                    "Quantidade de livros: %{x}<br>" +
+                    "Quantidade: %{x}<br>" +
                     "<extra></extra>",
         textfont_color='#d6d7dd'
     )
@@ -231,21 +234,29 @@ with col1:
                             "Quantidade de livros: %{value}<br>" +
                             "<extra></extra>",
                           textfont_color='#d6d7dd')
-    chart10.update_layout(showlegend=True)
+    chart10.update_layout(showlegend=True,
+                          title=dict(
+                            subtitle={
+                                'text': 'Este gráfico não sofre alterações com o filtro de ordenação por número de livros ou quantidade de páginas'
+                            }
+                        ))
     st.plotly_chart(chart10)
 
 with col2:
     # chart of number of books read by type and genre of author
-    count_finished_books_by_type_gender = finished_books.groupby(['Tipo', 'GeneroAutor'])['Livro'].count().reset_index()
-    chart4 = px.bar(count_finished_books_by_type_gender, x="Livro", y="Tipo", color='GeneroAutor', orientation='h',
+    if filter_by == 'Quantidade de livros':
+        count_finished_books_by_type_gender = finished_books.groupby(['Tipo', 'GeneroAutor'])[col_filter_by].count().reset_index()
+    else:
+        count_finished_books_by_type_gender = finished_books.groupby(['Tipo', 'GeneroAutor'])[col_filter_by].sum().reset_index()
+    chart4 = px.bar(count_finished_books_by_type_gender, x=col_filter_by, y="Tipo", color='GeneroAutor', orientation='h',
                 height=400,
-                title='Quantidade de livros lidos por tipo e gênero do autor', 
+                title=f'Quantidade de {title_filter_by} por tipo e gênero do autor', 
                 color_discrete_sequence=["#FF4B4B", "#CF7C7C"],
-                custom_data=['GeneroAutor'], text='Livro')
+                custom_data=['GeneroAutor'], text=col_filter_by)
     chart4.update_traces(
         hovertemplate =
                     "<b>%{y}</b><br>" +
-                    "Quantidade de livros: %{x}<br>" +
+                    "Quantidade: %{x}<br>" +
                     "Gênero do autor: %{customdata[0]}<br>" +
                     "<extra></extra>",
         textfont_color='#d6d7dd'
@@ -258,16 +269,19 @@ with col2:
     st.plotly_chart(chart4)
 
     # Number of books by read format
-    count_finished_books_by_read_format = finished_books.groupby('Formato')['Livro'].count().reset_index()
-    count_finished_books_by_read_format = count_finished_books_by_read_format.sort_values('Livro', ascending=False)
-    chart9 = px.bar(count_finished_books_by_read_format, x="Formato", y="Livro",
+    if filter_by == 'Quantidade de livros':
+        count_finished_books_by_read_format = finished_books.groupby('Formato')[col_filter_by].count().reset_index()
+    else:
+        count_finished_books_by_read_format = finished_books.groupby('Formato')[col_filter_by].sum().reset_index()
+    count_finished_books_by_read_format = count_finished_books_by_read_format.sort_values(col_filter_by, ascending=False)
+    chart9 = px.bar(count_finished_books_by_read_format, x="Formato", y=col_filter_by,
                 height=400,
-                title='Quantidade de livros lidos por formato', color_discrete_sequence=["#FF4B4B"],
-                text='Livro')
+                title=f'Quantidade de {title_filter_by} lidos por formato', color_discrete_sequence=["#FF4B4B"],
+                text=col_filter_by)
     chart9.update_traces(
         hovertemplate =
                     "<b>%{y}</b><br>" +
-                    "Quantidade de livros: %{x}<br>" +
+                    "Quantidade: %{x}<br>" +
                     "<extra></extra>",
         textfont_color='#d6d7dd'
     )
@@ -276,16 +290,19 @@ with col2:
     st.plotly_chart(chart9)
 
     # chart of top 5 countries
-    count_finished_books_by_country_top5 = finished_books.groupby('Pais')['Livro'].count().reset_index()
-    count_finished_books_by_country_top5 = count_finished_books_by_country_top5.sort_values('Livro', ascending=False).head()
-    chart11 = px.bar(count_finished_books_by_country_top5, x="Livro", y="Pais", orientation='h',
+    if filter_by == 'Quantidade de livros':
+        count_finished_books_by_country_top5 = finished_books.groupby('Pais')[col_filter_by].count().reset_index()
+    else:
+        count_finished_books_by_country_top5 = finished_books.groupby('Pais')[col_filter_by].sum().reset_index()
+    count_finished_books_by_country_top5 = count_finished_books_by_country_top5.sort_values(col_filter_by, ascending=False).head()
+    chart11 = px.bar(count_finished_books_by_country_top5, x=col_filter_by, y="Pais", orientation='h',
                 height=400,
-                title='Top 5 países mais lidos', color_discrete_sequence=["#CF7C7C"],
-                text='Livro')
+                title=f'Top 5 países mais lidos', color_discrete_sequence=["#CF7C7C"],
+                text=col_filter_by)
     chart11.update_traces(
         hovertemplate =
                     "<b>%{y}</b><br>" +
-                    "Quantidade de livros: %{x}<br>" +
+                    "Quantidade: %{x}<br>" +
                     "<extra></extra>",
         textfont_color='#d6d7dd'
     )
@@ -296,6 +313,7 @@ with col2:
     chart11.update_xaxes(title_text='')
     st.plotly_chart(chart11)
 
+st.write('A tabela abaixo não sofre alterações com o filtro de ordenação por número de livros ou quantidade de páginas')
 count_finished_books_by_author_qtd_books = finished_books.drop_duplicates(subset=['Autor', 'Livro']).groupby('Autor')['Livro'].count().reset_index()
 count_finished_books_by_author_qtd_rereading = finished_books.groupby(['Autor', 'LeituraNova']).size().unstack(fill_value=0)
 count_finished_books_by_author_qtd_pages = finished_books.groupby('Autor')['QuantidadePaginas'].sum().reset_index()

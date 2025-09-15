@@ -1,3 +1,4 @@
+from datetime import datetime
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -313,7 +314,6 @@ with col2:
     chart11.update_xaxes(title_text='')
     st.plotly_chart(chart11)
 
-st.write('A tabela abaixo não sofre alterações com o filtro de ordenação por número de livros ou quantidade de páginas')
 count_finished_books_by_author_qtd_books = finished_books.drop_duplicates(subset=['Autor', 'Livro']).groupby('Autor')['Livro'].count().reset_index()
 count_finished_books_by_author_qtd_rereading = finished_books.groupby(['Autor', 'LeituraNova']).size().unstack(fill_value=0)
 count_finished_books_by_author_qtd_pages = finished_books.groupby('Autor')['QuantidadePaginas'].sum().reset_index()
@@ -325,7 +325,10 @@ count_finished_books_by_author_details['QuantidadePaginas'] = count_finished_boo
 count_finished_books_by_author_details['Nota'] = count_finished_books_by_author_details['Nota'].apply(lambda x: round(x, 1))
 count_finished_books_by_author_details = count_finished_books_by_author_details.rename(columns={'Livro': 'Livros lidos', 'Nota': 'Média de notas', 'QuantidadePaginas': 'Total de páginas',
                                                                                                 'Leitura nova': 'Leituras novas', 'Releitura': 'Releituras'})
-st.dataframe(count_finished_books_by_author_details.sort_values(['Livros lidos', 'Autor'], ascending=[0,1]).reset_index(drop=True), hide_index=True, use_container_width=True)
+if filter_by == 'Quantidade de livros':
+    st.dataframe(count_finished_books_by_author_details.sort_values(['Livros lidos', 'Autor'], ascending=[0,1]).reset_index(drop=True), hide_index=True, use_container_width=True)
+else:
+    st.dataframe(count_finished_books_by_author_details.astype({'Total de páginas': int}).sort_values(['Total de páginas', 'Autor'], ascending=[0,1]).reset_index(drop=True).astype({'Total de páginas': str}), hide_index=True, use_container_width=True)
 
 with st.expander('Ver detalhes'):
     st.dataframe(finished_books, hide_index=True)
@@ -335,7 +338,7 @@ with st.expander('Ver detalhes'):
     finished_books_by_date['DataTermino'] = pd.to_datetime(finished_books_by_date['DataTermino'], format='%d/%m/%Y').dt.date
     finished_books_by_date = finished_books_by_date.set_index('DataTermino')['QtLivros']
     finished_books_by_date = finished_books_by_date.fillna(0)
-    finished_books_by_date = finished_books_by_date.reindex(pd.date_range(finished_books_by_date.index.min(), finished_books_by_date.index.max()), fill_value=0)
+    finished_books_by_date = finished_books_by_date.reindex(pd.date_range(f'01/01/{finished_books_by_date.index.min().year}', datetime.today().strftime('%m/%d/%Y')), fill_value=0)
     finished_books_by_date = finished_books_by_date.reset_index(drop=False).rename(columns={'index': 'DataTermino'})
     chart6 = calplot(finished_books_by_date, x='DataTermino', y='QtLivros', 
                      cmap_min=0, cmap_max=5, name='Quantidade', colorscale='reds')

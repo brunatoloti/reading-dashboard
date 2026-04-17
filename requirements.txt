@@ -1,6 +1,6 @@
 streamlit
 streamlit-authenticator
-pandas
+pandas==3.0.1
 st-gsheets-connection
 plotly
 plotly-calplot

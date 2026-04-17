@@ -336,6 +336,7 @@ with st.expander('Ver detalhes'):
     finished_books_by_date = finished_books[['Livro', 'DataTermino', 'Ano']].sort_values('Ano')
     finished_books_by_date = finished_books_by_date.groupby(['Ano', 'DataTermino']).count().rename(columns={'Livro': 'QtLivros'}).reset_index(drop=False)
     finished_books_by_date['DataTermino'] = pd.to_datetime(finished_books_by_date['DataTermino'], format='%d/%m/%Y').dt.date
+    finished_books_by_date['Ano'] = pd.to_datetime(finished_books_by_date['DataTermino']).dt.year
     finished_books_by_date = finished_books_by_date.set_index('DataTermino')['QtLivros']
     finished_books_by_date = finished_books_by_date.fillna(0)
     finished_books_by_date = finished_books_by_date.reindex(pd.date_range(f'01/01/{finished_books_by_date.index.min().year}', datetime.today().strftime('%m/%d/%Y')), fill_value=0)

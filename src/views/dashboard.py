@@ -15,39 +15,67 @@ finished_books['Nota'] = finished_books['Nota'].apply(lambda x: float(x.replace(
 finished_books['Ano'] = finished_books['Ano'].apply(lambda x: str(int(x)))
 finished_books['LeituraNova'] = finished_books['LeituraNova'].apply(lambda x: 'Leitura nova' if x else 'Releitura')
 
+year_sel = st.session_state.get('year', None)
+publisher_sel = st.session_state.get('publisher', None)
+author_sel = st.session_state.get('author', None)
+country_sel = st.session_state.get('country', None)
+
+finished_books_year_metric = finished_books.copy()
+if publisher_sel:
+    finished_books_year_metric = finished_books_year_metric[finished_books_year_metric['Editora'] == publisher_sel]
+if author_sel:
+    finished_books_year_metric = finished_books_year_metric[finished_books_year_metric['Autor'] == author_sel]
+if country_sel:
+    finished_books_year_metric = finished_books_year_metric[finished_books_year_metric['Pais'] == country_sel]
+year_filter_options = sorted(finished_books_year_metric['Ano'].unique().tolist())
+
+finished_books_publisher_metric = finished_books.copy()
+if year_sel:
+    finished_books_publisher_metric = finished_books_publisher_metric[finished_books_publisher_metric['Ano'] == year_sel]
+if author_sel:
+    finished_books_publisher_metric = finished_books_publisher_metric[finished_books_publisher_metric['Autor'] == author_sel]
+if country_sel:
+    finished_books_publisher_metric = finished_books_publisher_metric[finished_books_publisher_metric['Pais'] == country_sel]
+publisher_filter_options = sorted(finished_books_publisher_metric['Editora'].unique().tolist())
+
+finished_books_author_metric = finished_books.copy()
+if publisher_sel:
+    finished_books_author_metric = finished_books_author_metric[finished_books_author_metric['Editora'] == publisher_sel]
+if year_sel:
+    finished_books_author_metric = finished_books_author_metric[finished_books_author_metric['Ano'] == year_sel]
+if country_sel:
+    finished_books_author_metric = finished_books_author_metric[finished_books_author_metric['Pais'] == country_sel]
+author_filter_options = sorted(finished_books_author_metric['Autor'].unique().tolist())
+
+finished_books_country_metric = finished_books.copy()
+if publisher_sel:
+    finished_books_country_metric = finished_books_country_metric[finished_books_country_metric['Editora'] == publisher_sel]
+if author_sel:
+    finished_books_country_metric = finished_books_country_metric[finished_books_country_metric['Autor'] == author_sel]
+if year_sel:
+    finished_books_country_metric = finished_books_country_metric[finished_books_country_metric['Ano'] == year_sel]
+country_filter_options = sorted(finished_books_country_metric['Pais'].unique().tolist())
+
 # filters
 filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
 
-year_filter_options = list(finished_books['Ano'].unique())
-publisher_filter_options = list(finished_books.sort_values('Editora')['Editora'].unique())
-author_filter_options = list(finished_books.sort_values('Autor')['Autor'].unique())
-country_filter_options = list(finished_books.sort_values('Pais')['Pais'].unique())
-
 with filter_col1:
-    year_filter = st.selectbox('Ano', options=year_filter_options, index=None, placeholder='Todos')
+    year_filter = st.selectbox('Ano', options=year_filter_options, index=None, placeholder='Todos', key='year')
 with filter_col2:
-    publisher_filter = st.selectbox('Editora', options=publisher_filter_options, index=None, placeholder='Todos')
+    publisher_filter = st.selectbox('Editora', options=publisher_filter_options, index=None, placeholder='Todos', key='publisher')
 with filter_col3:
-    author_filter = st.selectbox('Autor', options=author_filter_options, index=None, placeholder='Todos')
+    author_filter = st.selectbox('Autor', options=author_filter_options, index=None, placeholder='Todos', key='author')
 with filter_col4:
-    country_filter = st.selectbox('País', options=country_filter_options, index=None, placeholder='Todos')
+    country_filter = st.selectbox('País', options=country_filter_options, index=None, placeholder='Todos', key='country')
 
-if year_filter == None:
-    year_filter = year_filter_options
-else:
-    year_filter = [year_filter]
-if publisher_filter == None:
-    publisher_filter = publisher_filter_options
-else:
-    publisher_filter = [publisher_filter]
-if author_filter == None:
-    author_filter = author_filter_options
-else:
-    author_filter = [author_filter]
-if country_filter == None:
-    country_filter = country_filter_options
-else:
-    country_filter = [country_filter]
+if year_sel:
+    finished_books = finished_books[finished_books['Ano'] == year_sel]
+if publisher_sel:
+    finished_books = finished_books[finished_books['Editora'] == publisher_sel]
+if author_sel:
+    finished_books = finished_books[finished_books['Autor'] == author_sel]
+if country_sel:
+    finished_books = finished_books[finished_books['Pais'] == country_sel]
 
 filter_by = st.selectbox('Você quer ver por quantidade de livros ou por quantidade de páginas?',
                          ['Quantidade de livros', 'Quantidade de páginas'],
@@ -58,8 +86,6 @@ if filter_by == 'Quantidade de livros':
 else:
     col_filter_by = 'QuantidadePaginas'
     title_filter_by = 'páginas lidas'
-
-finished_books = finished_books.query(f"Ano in {year_filter} & Editora in {publisher_filter} & Autor in {author_filter} & Pais in {country_filter}")
 
 #graphs
 
@@ -343,6 +369,13 @@ with st.expander('Ver detalhes'):
     finished_books_by_date = finished_books_by_date.reset_index(drop=False).rename(columns={'index': 'DataTermino'})
     chart6 = calplot(finished_books_by_date, x='DataTermino', y='QtLivros', 
                      cmap_min=0, cmap_max=5, name='Quantidade', colorscale='reds')
+    for trace in chart6.data:
+        if trace.type == "heatmap":
+            trace.hovertemplate = (
+                "<b>Data:</b> %{customdata[0]}<br>"
+                "<b>Quantidade:</b> %{z}"
+                "<extra></extra>"
+            )
     dd = {"title": {"text": "Histórico de finalização de leituras"}}
     j = 1
     for i in finished_books.sort_values('Ano')['Ano'].unique():

@@ -352,9 +352,9 @@ count_finished_books_by_author_details['Nota'] = count_finished_books_by_author_
 count_finished_books_by_author_details = count_finished_books_by_author_details.rename(columns={'Livro': 'Livros lidos', 'Nota': 'Média de notas', 'QuantidadePaginas': 'Total de páginas',
                                                                                                 'Leitura nova': 'Leituras novas', 'Releitura': 'Releituras'})
 if filter_by == 'Quantidade de livros':
-    st.dataframe(count_finished_books_by_author_details.sort_values(['Livros lidos', 'Autor'], ascending=[0,1]).reset_index(drop=True), hide_index=True, use_container_width=True)
+    st.dataframe(count_finished_books_by_author_details.sort_values(['Livros lidos', 'Autor'], ascending=[0,1]).reset_index(drop=True), hide_index=True, width='stretch')
 else:
-    st.dataframe(count_finished_books_by_author_details.astype({'Total de páginas': int}).sort_values(['Total de páginas', 'Autor'], ascending=[0,1]).reset_index(drop=True).astype({'Total de páginas': str}), hide_index=True, use_container_width=True)
+    st.dataframe(count_finished_books_by_author_details.astype({'Total de páginas': int}).sort_values(['Total de páginas', 'Autor'], ascending=[0,1]).reset_index(drop=True).astype({'Total de páginas': str}), hide_index=True, width='stretch')
 
 with st.expander('Ver detalhes'):
     st.dataframe(finished_books, hide_index=True)

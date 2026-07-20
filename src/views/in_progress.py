@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.db import get_all_in_progress_books, insert_in_progress_books, get_all_finished_books, insert_in_finished_books_and_remove_in_progress_books, get_all_countries
+from src.db import get_all_in_progress_books, insert_in_progress_books, get_all_finished_books, insert_in_one_and_remove_from_another, get_all_countries, get_all_paused_books
 
 
 gapb = get_all_in_progress_books()
@@ -114,7 +114,7 @@ with col3:
                     ]
                 )
                 update_books_finisheds = pd.concat([get_all_finished_books(), finish_actual_book], ignore_index=True).drop_duplicates()
-                insert_in_finished_books_and_remove_in_progress_books(update_books_finisheds, gapb.query(f"Livro != '{book_name}'"))
+                insert_in_one_and_remove_from_another(update_books_finisheds, gapb.query(f"Livro != '{book_name}'"), 'finished_books', 'in_progress')
                 st.success('Novo livro finalizado')
 
 st.title('Leituras em andamento')
@@ -161,3 +161,8 @@ for i, row in gapb.iterrows():
         '''
         c1.markdown(m)
         c2.plotly_chart(fig, key=row.Livro)
+        pc1, pc2, pc3, pc4 = st.columns(4)
+        if st.button('Pausar leitura', key=f'pause_button_{row.Livro}', use_container_width=True):
+            to_pause = pd.concat([get_all_paused_books(), gapb.query(f"Livro == '{row.Livro}'")], ignore_index=True)
+            to_keep = gapb.query(f"Livro != '{row.Livro}'")
+            insert_in_one_and_remove_from_another(to_pause, to_keep, 'paused_books', 'in_progress')

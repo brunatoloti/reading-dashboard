@@ -17,6 +17,16 @@ def get_all_in_progress_books():
     existing_data = conn.read(worksheet='in_progress', usecols=list(range(14))).dropna()
     return existing_data
 
+def get_all_paused_books():
+    conn = st.connection('gsheets', type=GSheetsConnection)
+    existing_data = conn.read(worksheet='paused_books', usecols=list(range(14))).dropna()
+    return existing_data
+
+def get_all_abandoned_books():
+    conn = st.connection('gsheets', type=GSheetsConnection)
+    existing_data = conn.read(worksheet='abandoned_books', usecols=list(range(15))).dropna()
+    return existing_data
+
 def get_all_countries():
     conn = st.connection('gsheets', type=GSheetsConnection)
     country = conn.read(worksheet='country', usecols=list(range(2))).dropna()
@@ -28,9 +38,9 @@ def insert_in_progress_books(updated_df):
     st.cache_data.clear()
     st.rerun()
 
-def insert_in_finished_books_and_remove_in_progress_books(updated_df, remove_df):
+def insert_in_one_and_remove_from_another(updated_df, remove_df, insert_table, remove_table):
     conn = st.connection('gsheets', type=GSheetsConnection)
-    conn.update(worksheet='finished_books', data=updated_df)
-    conn.update(worksheet='in_progress', data=remove_df)
+    conn.update(worksheet=insert_table, data=updated_df)
+    conn.update(worksheet=remove_table, data=remove_df)
     st.cache_data.clear()
     st.rerun()

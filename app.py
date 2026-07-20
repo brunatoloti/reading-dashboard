@@ -5,10 +5,18 @@ from src.db import get_all_users
 
 
 dashboard = st.Page(
-    'src/views/dashboard.py', title='Dashboard', icon=':material/bar_chart_4_bars:', default=True
+    'src/views/dashboard.py', title='Dashboard das finalizadas', icon=':material/bar_chart_4_bars:', default=True
 )
 in_progress = st.Page(
     'src/views/in_progress.py', title='Em andamento', icon=':material/rule:'
+)
+
+paused = st.Page(
+    'src/views/paused.py', title='Pausadas', icon=':material/schedule:'
+)
+
+abandoned = st.Page(
+    'src/views/abandoned.py', title='Abandonadas', icon=':material/error:'
 )
 
 st.set_page_config(layout="wide", page_title="Leituras da Bruna", page_icon="📚")
@@ -37,7 +45,7 @@ if authentication_status == None:
 if authentication_status:
     authenticator.logout("Sair", "sidebar")
     pg = st.navigation(
-        pages=[dashboard, in_progress]
+        pages=[dashboard, in_progress, paused, abandoned]
     )
     pg.run()
 else:

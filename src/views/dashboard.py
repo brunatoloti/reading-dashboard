@@ -359,16 +359,27 @@ else:
 with st.expander('Ver detalhes'):
     st.dataframe(finished_books, hide_index=True)
 
-    finished_books_by_date = finished_books[['Livro', 'DataTermino', 'Ano']].sort_values('Ano')
-    finished_books_by_date = finished_books_by_date.groupby(['Ano', 'DataTermino']).count().rename(columns={'Livro': 'QtLivros'}).reset_index(drop=False)
-    finished_books_by_date['DataTermino'] = pd.to_datetime(finished_books_by_date['DataTermino'], format='%d/%m/%Y').dt.date
-    finished_books_by_date['Ano'] = pd.to_datetime(finished_books_by_date['DataTermino']).dt.year
-    finished_books_by_date = finished_books_by_date.set_index('DataTermino')['QtLivros']
-    finished_books_by_date = finished_books_by_date.fillna(0)
-    finished_books_by_date = finished_books_by_date.reindex(pd.date_range(f'01/01/{finished_books_by_date.index.min().year}', datetime.today().strftime('%m/%d/%Y')), fill_value=0)
-    finished_books_by_date = finished_books_by_date.reset_index(drop=False).rename(columns={'index': 'DataTermino'})
-    chart6 = calplot(finished_books_by_date, x='DataTermino', y='QtLivros', 
-                     cmap_min=0, cmap_max=5, name='Quantidade', colorscale='reds')
+    finished_books_by_date = finished_books[["Livro", "DataTermino"]].copy()
+    finished_books_by_date["DataTermino"] = pd.to_datetime(finished_books_by_date["DataTermino"], format="%d/%m/%Y", errors="coerce",)
+    finished_books_by_date = finished_books_by_date.dropna(subset=["DataTermino"]).groupby("DataTermino").size().rename("QtLivros")
+    start_date = pd.Timestamp(year=finished_books_by_date.index.min().year, month=1, day=1,)
+    finished_books_by_date = (
+        finished_books_by_date
+        .reindex(
+            pd.date_range(
+                start=start_date,
+                end=pd.Timestamp.today().normalize(),
+            ),
+            fill_value=0,
+        )
+        .rename_axis("DataTermino")
+        .reset_index()
+    )
+
+    finished_books_by_date["DataTermino"] = finished_books_by_date["DataTermino"].to_numpy(dtype="datetime64[ns]")
+    finished_books_by_date["QtLivros"] = finished_books_by_date["QtLivros"].astype(int)
+    chart6 = calplot(finished_books_by_date.copy(), x="DataTermino", y="QtLivros",
+        cmap_min=0, cmap_max=5, name="Quantidade", colorscale="reds",)
     for trace in chart6.data:
         if trace.type == "heatmap":
             trace.hovertemplate = (

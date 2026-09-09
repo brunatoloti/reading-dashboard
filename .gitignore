@@ -1,3 +1,5 @@
 venv
 secrets.toml
 *__pycache__
+.env
+teste_openai.py

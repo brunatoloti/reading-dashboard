@@ -21,7 +21,6 @@ with st.expander('Adicionar nova leitura'):
     show_form = False
     if search_isbn:
         open_library_result = ReadingDashboardUtilities({'isbn': search_isbn}).search_open_library()
-        print(open_library_result)
         book_name_value = open_library_result['book_name']
         author_name_value = open_library_result['author_name']
         pages_quantity_value = open_library_result['pages_quantity']

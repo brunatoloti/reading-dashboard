@@ -1,4 +1,5 @@
 from datetime import datetime
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -184,6 +185,13 @@ chart8 = px.histogram(
     title='Distribuição do tamanho dos livros lidos',
     color_discrete_sequence=["#CF7C7C"]
 )
+chart8.update_traces(
+    hovertemplate=(
+        "<b>Número de páginas:</b> %{x}<br>"
+        "<b>Quantidade de livros:</b> %{y}"
+        "<extra></extra>"
+    )
+)
 chart8.update_xaxes(title_text='Quantidade de páginas')
 chart8.update_yaxes(title_text='')
 chart8.update_layout(
@@ -361,8 +369,12 @@ with st.expander('Ver detalhes'):
 
     finished_books_by_date = finished_books[["Livro", "DataTermino"]].copy()
     finished_books_by_date["DataTermino"] = pd.to_datetime(finished_books_by_date["DataTermino"], format="%d/%m/%Y", errors="coerce",)
-    finished_books_by_date = finished_books_by_date.dropna(subset=["DataTermino"]).groupby("DataTermino").size().rename("QtLivros")
-    start_date = pd.Timestamp(year=finished_books_by_date.index.min().year, month=1, day=1,)
+    finished_books_by_date = finished_books_by_date.dropna(subset=["DataTermino"])
+    books_by_date = finished_books_by_date.groupby("DataTermino")["Livro"].agg(lambda livros: "<br>".join(f"• {livro}" for livro in livros)).to_dict()
+    finished_books_by_date = finished_books_by_date.groupby("DataTermino").size().rename("QtLivros")
+
+    start_date = pd.Timestamp(year=finished_books_by_date.index.min().year, month=1, day=1)
+
     finished_books_by_date = (
         finished_books_by_date
         .reindex(
@@ -382,17 +394,54 @@ with st.expander('Ver detalhes'):
         cmap_min=0, cmap_max=5, name="Quantidade", colorscale="reds",)
     for trace in chart6.data:
         if trace.type == "heatmap":
+            new_customdata = []
+
+            for item in trace.customdata:
+                date = pd.to_datetime(item[0]).normalize()
+
+                new_customdata.append([
+                    date.strftime("%d/%m/%Y"),
+                    books_by_date.get(date, "Nenhum livro"),
+                ])
+
+            trace.customdata = new_customdata
+
             trace.hovertemplate = (
                 "<b>Data:</b> %{customdata[0]}<br>"
-                "<b>Quantidade:</b> %{z}"
+                "<b>Quantidade:</b> %{z}<br>"
+                "<b>Livros:</b><br>%{customdata[1]}"
                 "<extra></extra>"
             )
     dd = {"title": {"text": "Histórico de finalização de leituras"}}
     j = 1
-    for i in finished_books.sort_values('Ano')['Ano'].unique():
-        dd.update({f"yaxis{j}" : {"title": str(i), "ticktext": ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"]}, 
-                   f"xaxis{j}": {"ticktext": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho",
-                                              "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]}})
-        j = j + 1
+
+    for year in finished_books.sort_values("Ano")["Ano"].unique():
+        dd.update({
+            f"yaxis{j}": {
+                "title": str(year),
+                "ticktext": [
+                    "Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"
+                ],
+            },
+            f"xaxis{j}": {
+                "ticktext": [
+                    "Janeiro",
+                    "Fevereiro",
+                    "Março",
+                    "Abril",
+                    "Maio",
+                    "Junho",
+                    "Julho",
+                    "Agosto",
+                    "Setembro",
+                    "Outubro",
+                    "Novembro",
+                    "Dezembro",
+                ],
+            },
+        })
+
+        j += 1
+
     chart6.update_layout(dd)
     st.plotly_chart(chart6)
